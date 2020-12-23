@@ -1,11 +1,14 @@
 import numpy as np
+import os
 import torch
 from os import path
 from sklearn.gaussian_process import GaussianProcessRegressor
-from src.bayesian_optimization import bayesian_optimization
-from src.models import resnet10, train
-from src.datasets import KMNIST
+from sklearn.gaussian_process.kernels import Matern
 from src.acquisition_functions import EI
+from src.bayesian_optimization import bayesian_optimization
+from src.datasets import KMNIST
+from src.models import resnet10, train
+from src.plotting import plot_bo
 
 
 def main(args):
@@ -13,24 +16,36 @@ def main(args):
     """
 
     np.random.seed(args.seed)
-    search_space = np.geomspace(args.lr_min, args.lr_max, args.lr_resolution)
+    search_space = np.linspace(
+        args.lr_exp_min, args.lr_exp_max, args.lr_resolution
+    )
 
-    def cost_function(lr):
+    def plot(*arguments):
+        plot_bo(args.save_directory, *arguments)
+
+    def cost_function(lr_exp):
         model = resnet10().to(device=args.device)
         dataset = KMNIST(args.batch_size)
-        optimizer = torch.optim.SGD(model.parameters(), lr=float(lr))
-        val_loss = train(model, optimizer, dataset, args.epochs, args.device)
+        optimizer = torch.optim.SGD(model.parameters(), lr=float(10**lr_exp))
+        neg_val_loss = train(
+            model, optimizer, dataset, args.epochs, args.device
+        )
 
-        return val_loss
+        return neg_val_loss
 
     lambda_hat = bayesian_optimization(
         search_space,
         cost_function,
         acquisition_function=EI,
         predictive_model=GaussianProcessRegressor(),
-        max_evaluations=args.max_evaluations
+        max_evaluations=args.max_evaluations,
+        logging_function=plot
     )
 
+    if not os.path.exists(args.save_directory):
+        os.makedirs(args.save_directory)
+
+    # save the winning lambda into the given directory
     torch.save(lambda_hat, path.join(args.save_directory, "lambda_hat.pt"))
 
 
@@ -45,7 +60,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--save_directory",
         type=str,
-        default=".",
+        default="results/",
         help="directory where the results will be written to"
     )
     parser.add_argument(
@@ -63,7 +78,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--epochs",
         type=int,
-        default=10,
+        default=5,
         help="amount of epochs to train the resnet model"
     )
     parser.add_argument(
@@ -73,15 +88,15 @@ if __name__ == "__main__":
         help="batch size for pytorch model training"
     )
     parser.add_argument(
-        "--lr_min",
+        "--lr_exp_min",
         type=float,
-        default=1e-5,
+        default=-4,
         help="lower bound of lr search space"
     )
     parser.add_argument(
-        "--lr_max",
+        "--lr_exp_max",
         type=float,
-        default=1e-0,
+        default=-1,
         help="upper bound of lr search space"
     )
     parser.add_argument(

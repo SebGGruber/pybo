@@ -8,38 +8,55 @@ def bayesian_optimization(
     cost_function,
     acquisition_function,
     predictive_model,
-    max_evaluations
+    max_evaluations,
+    logging_function
 ):
     """
     """
     
-    # pick the first lambda by random
-    start_lambda = np.random.choice(search_space, 1)
-    c_inc = cost_function(start_lambda)
-    D = {"x": [start_lambda], "y": [c_inc]}
+    # randomly pick the first two lambdas
+    start_lambdas = np.random.choice(search_space, 2)
+    start_cs = [cost_function(lam) for lam in start_lambdas]
+    c_inc = np.max(start_cs)
+    # "dataset" of evaluated lambdas
+    D = {
+        "x": np.array(start_lambdas),
+        "y": np.array(start_cs)
+    }
 
     # progress bar displayed in the console output
     with tqdm(total=max_evaluations, disable=False) as progress_bar:
 
-        for _ in range(max_evaluations):
+        for t in range(max_evaluations):
 
-            predictive_model.fit(D["x"], D["y"])
+            # ignoring irrelevant warnings
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                # reshape to single feature, multi sample array
+                predictive_model.fit(D["x"].reshape(-1, 1), D["y"])
 
             def acq(x):
                 return acquisition_function(predictive_model, x, c_inc)
 
-            best_index = np.argmax([acq(x) for x in search_space])
-            best_lambda = search_space[best_index]
+            # list with entries of 
+            # {u: function value, mu: mean, sigma: standard deviation, x: x}
+            acquisition_stats = [acq(x) for x in search_space]
+            us = [acq["u"] for acq in acquisition_stats]
+            # maximum of the acquisition function w.r.t. the search space
+            best_lambda = search_space[np.argmax(us)]
 
             c_inc = cost_function(best_lambda)
 
-            D["x"].append(best_lambda)
-            D["y"].append(c_inc)
+            # reshape to single feature, multi sample array
+            D["x"] = np.append(D["x"], best_lambda)
+            D["y"] = np.append(D["y"], c_inc)
 
+            # console and file logging
+            logging_function(t, acquisition_stats, D)
             postfix = {"lambda": best_lambda, "c_inc": c_inc}
             progress_bar.set_postfix(postfix)
             progress_bar.update(1)
 
-    lambda_hat = D["x"][np.argmax(D["x"])]
+    lambda_hat = D["x"][np.argmax(D["y"])]
 
     return lambda_hat

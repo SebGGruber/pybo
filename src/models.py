@@ -97,13 +97,13 @@ def train(model, optimizer, dataset, epochs, device):
                     labels = labels.to(device=device)
 
                     outputs = model(inputs)
-                    val_loss = criterion(outputs, labels).item()
+                    val_loss = -1 * criterion(outputs, labels).item()
                     val_losses.append(val_loss)
 
-            postfix = {"val_loss": val_loss}
+            postfix = {"neg_val_loss": val_loss}
             progress_bar.set_postfix(postfix)
             progress_bar.update(1)
 
     # return the best validation loss of all epochs
-    return np.min(val_losses)
+    return np.max(val_losses)
 
