@@ -4,6 +4,20 @@ import torchvision
 
 def KMNIST(batch_size):
     """
+    Function returning a train, validation, and test loader of the KMNIST
+    dataset.
+    The validation set is based on 10000 random instances of the train set.
+
+    Args:
+        batch_size (int): Amount of instances a batch returned by each loader
+            should have.
+
+    Returns:
+        {
+            "train": Batch loader of the train set,
+            "val": Batch loader of the val set,
+            "test": Batch loader of the test set
+        }
     """
 
     transform = torchvision.transforms.Compose(

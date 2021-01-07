@@ -4,6 +4,18 @@ from scipy.stats import norm
 
 def EI(gpr, x, c_inc):
     """
+    Expected Improvement used as acquisition function.
+    
+    Args:
+        gpr (sklearn.gaussian_process.GaussianProcessRegressor):
+            GP regressor used for fitting the cost function
+        x (ndarray):
+            Value of the search space to evaluate.
+        c_inc (float):
+            Current best/highest cost function value.
+
+    Returns:
+        {"u": float, "mu": float, "sigma": float, "x": ndarray}
     """
 
     # ignoring irrelevant warnings

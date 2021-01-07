@@ -5,6 +5,15 @@ from tqdm import tqdm
 
 
 class ResNet_channels(resnet.ResNet):
+    """
+    Modified from 
+    https://pytorch.org/docs/stable/_modules/torchvision/models/resnet.html
+    ResNet 10 model taking a channel argument and returning logits as
+    predictions.
+
+    Args:
+        in_channels (int): Channel amount of the input.
+    """
 
     def __init__(self, in_channels, *args, **kwargs):
         super(ResNet_channels, self).__init__(*args, **kwargs)
@@ -36,6 +45,7 @@ class ResNet_channels(resnet.ResNet):
 
 
 def _resnet(arch, block, layers, pretrained, progress, in_channels, **kwargs):
+    """ Helper function constructing the model."""
     model = ResNet_channels(in_channels, block, layers, **kwargs)
     return model
 
@@ -63,12 +73,35 @@ def resnet10(
 
 
 def train(model, optimizer, dataset, epochs, device):
+    """
+    Function training a `model` on a `dataset` for `epochs` iterations with
+    an `optimizer` on a given `device`.
+    Only the validation set will be evaluated.
+    The test set is left untouched!!!
+    Since we maximize the cost function, the negative validation loss is
+    returned.
+
+    Args:
+        model (torch.nn.module): Model to train.
+        optimizer (torch.optim.optimizer): Optimizer used for updating the
+            model.
+        dataset (torch.utils.data.Dataset): Dataset the model should be fitted
+            on.
+        epochs (int): Amount of epochs the training should take.
+        device (str): Device to train the model on ("cpu" or "cuda" or
+            "cuda:X", where "X" is the GPU index).
+
+    Returns:
+        float: Best validation loss of all epochs.
+    """
+        
 
     # progress bar displayed in the console output
     with tqdm(
         total=epochs, desc="Pytorch model training", disable=False, leave=False
     ) as progress_bar:
 
+        # training initializations
         criterion = torch.nn.CrossEntropyLoss()
         model.train()
         val_losses = []
@@ -100,6 +133,7 @@ def train(model, optimizer, dataset, epochs, device):
                     val_loss = -1 * criterion(outputs, labels).item()
                     val_losses.append(val_loss)
 
+            # console output
             postfix = {"neg_val_loss": val_loss}
             progress_bar.set_postfix(postfix)
             progress_bar.update(1)

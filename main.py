@@ -13,17 +13,46 @@ from src.plotting import plot_bo
 
 def main(args):
     """
+    Main function applying the bayesian optimization framework on a hard-coded
+    setting, here: ResNet-10 model optimized with SGD on the KMNIST dataset.
+    This setting is specified in the form of a cost function.
+    A plotting function does the logging during the hyperparameter tuning.
+    No value will be returned, but the winning hyperparameter is stored in
+    the given `save_directory` specified in the CLI.
+    In general, all supported arguments are called in the CLI.
+
+    Args:
+        args (argparse.ArgumentParse):
+            CLI argument parser, which includes the arguments 
+            `save_directory`, `device`, `max_evaluations`, `epochs`,
+            `batch_size`, `lr_exp_min`, `lr_exp_max`, and `lr_resolution`.
+            For a detailed description of each, call "python main.py -h" in
+            the command line.
     """
 
+    # 1) INITIALIZATIONS / DEFINITIONS
     np.random.seed(args.seed)
+
     search_space = np.linspace(
         args.lr_exp_min, args.lr_exp_max, args.lr_resolution
     )
 
     def plot(*arguments):
+        """Helper function used for logging in the bayesian opt. framework."""
         plot_bo(args.save_directory, *arguments)
 
     def cost_function(lr_exp):
+        """
+        Helper function used for calculating the cost value in each bayesian
+        opt. iteration.
+
+        Args:
+            lr_exp (float): Exponent of the learning rate of SGD (with base 10)
+
+        Returns:
+            float: Highest negative validation loss of all epochs. Used as the
+                value to maximize over the given search space.
+        """
         model = resnet10().to(device=args.device)
         dataset = KMNIST(args.batch_size)
         optimizer = torch.optim.SGD(model.parameters(), lr=float(10**lr_exp))
@@ -33,6 +62,7 @@ def main(args):
 
         return neg_val_loss
 
+    # 2) RUN BAYESIAN OPTIMIZATION
     lambda_hat = bayesian_optimization(
         search_space,
         cost_function,
@@ -42,21 +72,21 @@ def main(args):
         logging_function=plot
     )
 
+    # 3) SAVE the winning lambda into the given directory
     if not os.path.exists(args.save_directory):
         os.makedirs(args.save_directory)
 
-    # save the winning lambda into the given directory
     torch.save(lambda_hat, path.join(args.save_directory, "lambda_hat.pt"))
 
 
 if __name__ == "__main__":
 
     import argparse
-    # argument parsing and algorithm execution
+
+    # From here on: CLI argument parsing and `main` function execution
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--seed", type=int, default=123)
-    parser.add_argument("--dataset", type=str, default="KMNIST")
     parser.add_argument(
         "--save_directory",
         type=str,

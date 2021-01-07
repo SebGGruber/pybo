@@ -8,6 +8,32 @@ from os import path
 
 def plot_bo(directory, t, acquisition_stats, D):
     """
+    Function used for creating plots in each bayesian optimization iteration.
+    The last entry in `D` is plotted with its own color and not yet considered
+    for the acquisition function (it represents the current "choice").
+    The mean values are the continuous blue line.
+    The standard deviations are the dashed blue lines wrapping the mean line.
+    The acquistion function is the continuous red line.
+    Depending on cost function values, the plot scales may be off - plotting 
+    the acquisition function and the GP predictions in separate plots may help.
+
+    Args:
+        directory (str):
+            Directory where the plots should be stored.
+        t (int):
+            Current iteraton count of bayesian optimization.
+        acquisition_stats (
+            list of {"x": float, "mu": float, "sigma": float, "u": float}
+        ):
+            List of dictionaries holding the evaluations of the acquistion
+            function of the current bayesian optimization iteration.
+            This saves us from re-evaluating the acquisition function for
+            logging purposes.
+        D ({"x": ndarray, "y": ndarray}):
+            Dataset dictionary of all evaluated cost function values so far.
+            
+    Returns:
+        None
     """
 
     if not os.path.exists(directory):
