@@ -44,7 +44,8 @@ def main(args):
     def cost_function(lr_exp):
         """
         Helper function used for calculating the cost value in each bayesian
-        opt. iteration.
+        opt. iteration. Because the learning rate is bounded at 0, we search
+        over its exponent with base 10.
 
         Args:
             lr_exp (float): Exponent of the learning rate of SGD (with base 10)
@@ -121,13 +122,13 @@ if __name__ == "__main__":
         "--lr_exp_min",
         type=float,
         default=-4,
-        help="lower bound of lr search space"
+        help="lower bound of lr exponent search space"
     )
     parser.add_argument(
         "--lr_exp_max",
         type=float,
         default=-1,
-        help="upper bound of lr search space"
+        help="upper bound of lr exponent search space"
     )
     parser.add_argument(
         "--lr_resolution",
@@ -137,6 +138,5 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    print("Running bayesian optimization...")
     main(args)
     print("Done.")
