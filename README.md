@@ -5,7 +5,7 @@ Currently in the `main.py` file, the cost function is the negative validation lo
 The search space is the exponent of the SGD learning rate with base 10, e.g. `--lr_exp_min -4` and `--lr_exp_max -1` gives learning rates in the interval [1e-4, 1e-1].
 
 To start, simply execute `python main.py --device "cuda"` (assuming you have cuda available in pytorch).
-Default are 5 epochs for the model training, which makes `main.py` take ~8 minutes on a RTX2070 Super (set lower if you have a slow GPU).
+Default are 5 epochs for the model training, which makes `main.py` take ~9 minutes on a RTX2070 Super (set lower if you have a slow GPU).
 To see the CLI arguments and their descriptions, run `python main.py -h`.
 
 Depending on the cost function values, the plots (default path `./results/`) may get really ugly.
