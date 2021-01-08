@@ -13,11 +13,5 @@ The lower and upper bound of the search space are currently set to make the plot
 
 Tested setup:
 Ubuntu 18.04
+Cuda 11.0
 Python 3.8.5
-Pytorch 1.6.0
-Sklearn 0.24.0
-Numpy 1.19.1
-Scipy 1.5.2
-Torchvision 0.7.0
-Pandas 1.1.3
-Seaborn 0.11.1
