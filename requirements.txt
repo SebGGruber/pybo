@@ -96,7 +96,7 @@ torchmeta==1.5.0
 torchvision==0.7.0
 tqdm==4.48.2
 urllib3 @ file:///tmp/build/80754af9/urllib3_1597086586889/work
-Werkzeug==1.0.1
+Werkzeug==2.2.3
 wrapt==1.12.1
 yarl==1.5.1
 zipp==3.1.0
